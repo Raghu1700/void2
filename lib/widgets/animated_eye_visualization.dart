@@ -9,62 +9,47 @@ class AnimatedEyeVisualization extends StatefulWidget {
       _AnimatedEyeVisualizationState();
 }
 
-class _AnimatedEyeVisualizationState extends State<AnimatedEyeVisualization>
-    with TickerProviderStateMixin {
-  late AnimationController _rotationController;
-
-  late Animation<double> _rotationAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Rotation animation - full 360 degrees continuous rotation
-    _rotationController = AnimationController(
-      duration: const Duration(seconds: 10),
-      vsync: this,
-    )..repeat();
-
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 2 * math.pi, // Full 360 degrees
-    ).animate(CurvedAnimation(
-      parent: _rotationController,
-      curve: Curves.linear,
-    ));
-  }
-
-  @override
-  void dispose() {
-    _rotationController.dispose();
-    super.dispose();
-  }
+class _AnimatedEyeVisualizationState extends State<AnimatedEyeVisualization> {
+  double _rotationX = 0.0;
+  double _rotationY = 0.0;
+  double _zoom = 1.0;
+  Offset? _lastFocalPoint;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 280,
-      width: double.infinity,
-      child: Center(
-        child: AnimatedBuilder(
-          animation: _rotationAnimation,
-          builder: (context, child) {
-            return Transform(
-              alignment: Alignment.center,
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, 0.001) // perspective
-                ..rotateY(_rotationAnimation.value), // Full 360 degree Y-axis rotation
-              child: CustomPaint(
-                size: const Size(200, 200),
-                painter: SimpleEyePainter(
-                  rotationX: 0.0,
-                  rotationY: _rotationAnimation.value,
-                  zoom: 1.0,
-                  animationValue: _rotationAnimation.value,
-                ),
-              ),
-            );
-          },
+    return GestureDetector(
+      onScaleStart: (details) {
+        _lastFocalPoint = details.focalPoint;
+      },
+      onScaleUpdate: (details) {
+        setState(() {
+          if (_lastFocalPoint != null) {
+            final delta = details.focalPoint - _lastFocalPoint!;
+            _rotationY += delta.dx * 0.01;
+            _rotationX -= delta.dy * 0.01;
+            _lastFocalPoint = details.focalPoint;
+          }
+          if (details.scale != 1.0) {
+            _zoom = (_zoom * details.scale).clamp(0.5, 2.5);
+          }
+        });
+      },
+      onScaleEnd: (details) {
+        _lastFocalPoint = null;
+      },
+      child: Container(
+        height: 280,
+        width: double.infinity,
+        child: Center(
+          child: CustomPaint(
+            size: const Size(200, 200),
+            painter: SimpleEyePainter(
+              rotationX: _rotationX,
+              rotationY: _rotationY,
+              zoom: _zoom,
+              animationValue: 0.0,
+            ),
+          ),
         ),
       ),
     );
@@ -90,37 +75,104 @@ class SimpleEyePainter extends CustomPainter {
     final radius =
         (math.min(size.width, size.height) * 0.4 * zoom).clamp(50.0, 120.0);
 
-    // Draw the eye sphere
-    _drawEyeSphere(canvas, center, radius);
+    // Apply 3D transformations
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+
+    // Apply 3D rotation
+    final matrix = Matrix4.identity()
+      ..setEntry(3, 2, 0.001) // perspective
+      ..rotateX(rotationX)
+      ..rotateY(rotationY);
+
+    canvas.transform(matrix.storage);
+
+    // Draw the spherical eye with multiple depth layers
+    _drawSphericalEye(canvas, radius);
 
     // Draw iris
-    _drawIris(canvas, center, radius);
+    _drawIris(canvas, Offset.zero, radius);
 
     // Draw pupil
-    _drawPupil(canvas, center, radius);
+    _drawPupil(canvas, Offset.zero, radius);
 
     // Draw highlights
-    _drawHighlights(canvas, center, radius);
+    _drawHighlights(canvas, Offset.zero, radius);
+
+    canvas.restore();
   }
 
-  void _drawEyeSphere(Canvas canvas, Offset center, double radius) {
-    // Create gradient for the eye
-    final eyeGradient = RadialGradient(
+  void _drawSphericalEye(Canvas canvas, double radius) {
+    // Draw multiple layers to create a 3D sphere effect
+    final numLayers = 25;
+
+    for (int i = 0; i < numLayers; i++) {
+      final t = i / (numLayers - 1); // 0 to 1
+
+      // Calculate depth from center of sphere (0 at front, 1 at back)
+      final depth = t;
+
+      // Calculate radius for this layer using sphere equation
+      final layerRadius = radius * math.sqrt(1 - math.pow(depth - 0.5, 2) * 4);
+      final zOffset = (depth - 0.5) * radius;
+
+      if (layerRadius > 5) {
+        // Calculate color based on depth for 3D effect
+        final brightness = 1.0 - (depth * 0.3);
+
+        // Create a radial gradient for each layer
+        final layerGradient = RadialGradient(
+          colors: [
+            Color.lerp(
+              const Color(0xFFF0F8FF),
+              const Color(0xFF90CAF9),
+              depth * 0.5,
+            )!
+                .withOpacity(brightness),
+            Color.lerp(
+              const Color(0xFFE3F2FD),
+              const Color(0xFF64B5F6),
+              depth * 0.7,
+            )!
+                .withOpacity(brightness),
+            Color.lerp(
+              const Color(0xFFBBDEFB),
+              const Color(0xFF42A5F5),
+              depth,
+            )!
+                .withOpacity(brightness),
+          ],
+          stops: const [0.0, 0.5, 1.0],
+        );
+
+        final layerPaint = Paint()
+          ..shader = layerGradient.createShader(
+            Rect.fromCircle(
+                center: Offset(0, zOffset * 0.3), radius: layerRadius),
+          );
+
+        canvas.drawCircle(Offset(0, zOffset * 0.3), layerRadius, layerPaint);
+      }
+    }
+
+    // Add sphere shading overlay
+    final shadingGradient = RadialGradient(
+      center: const Alignment(-0.3, -0.3),
+      radius: 1.2,
       colors: [
-        const Color(0xFFE3F2FD),
-        const Color(0xFFBBDEFB),
-        const Color(0xFF90CAF9),
-        const Color(0xFF64B5F6),
+        Colors.white.withOpacity(0.3),
+        Colors.transparent,
+        Colors.black.withOpacity(0.2),
       ],
-      stops: const [0.0, 0.3, 0.7, 1.0],
+      stops: const [0.0, 0.5, 1.0],
     );
 
-    final eyePaint = Paint()
-      ..shader = eyeGradient.createShader(
-        Rect.fromCircle(center: center, radius: radius),
+    final shadingPaint = Paint()
+      ..shader = shadingGradient.createShader(
+        Rect.fromCircle(center: Offset.zero, radius: radius),
       );
 
-    canvas.drawCircle(center, radius, eyePaint);
+    canvas.drawCircle(Offset.zero, radius, shadingPaint);
   }
 
   void _drawIris(Canvas canvas, Offset center, double radius) {

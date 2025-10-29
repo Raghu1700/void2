@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
-        const AnimatedDashboardPage(),
+    const AnimatedDashboardPage(),
     const RiskCalculationPage(),
     const HistoryPage(),
     const SettingsPage(),
@@ -33,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: AppTheme.pureWhite,
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primaryYellow.withOpacity(0.15),
+              color: AppTheme.primaryRed.withOpacity(0.15),
               blurRadius: 20,
               offset: const Offset(0, -10),
               spreadRadius: 0,
@@ -46,11 +46,16 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, Icons.dashboard_rounded, Icons.dashboard_outlined, 'Dashboard'),
-                _buildNavItem(1, Icons.camera_alt_rounded, Icons.camera_alt_outlined, 'Risk'),
-                _buildNavItem(2, Icons.history_rounded, Icons.history_outlined, 'History'),
-                _buildNavItem(3, Icons.settings_rounded, Icons.settings_outlined, 'Settings'),
-                _buildNavItem(4, Icons.info_rounded, Icons.info_outline_rounded, 'About'),
+                _buildNavItem(0, Icons.dashboard_rounded,
+                    Icons.dashboard_outlined, 'Dashboard'),
+                _buildNavItem(1, Icons.camera_alt_rounded,
+                    Icons.camera_alt_outlined, 'Risk'),
+                _buildNavItem(2, Icons.history_rounded, Icons.history_outlined,
+                    'History'),
+                _buildNavItem(3, Icons.settings_rounded,
+                    Icons.settings_outlined, 'Settings'),
+                _buildNavItem(
+                    4, Icons.info_rounded, Icons.info_outline_rounded, 'About'),
               ],
             ),
           ),
@@ -59,9 +64,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label) {
+  Widget _buildNavItem(
+      int index, IconData activeIcon, IconData inactiveIcon, String label) {
     final isSelected = _currentIndex == index;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -76,14 +82,12 @@ class _HomeScreenState extends State<HomeScreen> {
           vertical: 10,
         ),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? AppTheme.primaryYellow
-              : Colors.transparent,
+          color: isSelected ? AppTheme.primaryRed : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppTheme.primaryYellow.withOpacity(0.4),
+                    color: AppTheme.primaryRed.withOpacity(0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -95,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(
               isSelected ? activeIcon : inactiveIcon,
-              color: isSelected ? AppTheme.textDark : AppTheme.warmGray,
+              color: isSelected ? AppTheme.pureWhite : AppTheme.warmGray,
               size: 24,
             ),
             if (isSelected) ...[
@@ -103,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  color: AppTheme.textDark,
+                  color: AppTheme.pureWhite,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.3,

@@ -5,7 +5,6 @@ import '../providers/camera_provider.dart';
 import '../providers/risk_provider.dart';
 import '../providers/esp_provider.dart';
 import '../theme/app_theme.dart';
-import '../widgets/risk_gauge.dart';
 
 class RiskCalculationPage extends StatefulWidget {
   const RiskCalculationPage({super.key});
@@ -15,15 +14,22 @@ class RiskCalculationPage extends StatefulWidget {
 }
 
 class _RiskCalculationPageState extends State<RiskCalculationPage> {
-  bool _showCamera = false;
+  bool _showCamera = true; // Auto-start camera
 
   @override
   void initState() {
     super.initState();
-    // Sync IOP data with risk provider after build
+    // Auto-initialize camera and sync IOP data
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cameraProvider =
+          Provider.of<CameraProvider>(context, listen: false);
       final espProvider = Provider.of<ESPProvider>(context, listen: false);
       final riskProvider = Provider.of<RiskProvider>(context, listen: false);
+
+      // Auto-start camera
+      cameraProvider.initializeCamera();
+
+      // Sync IOP data with risk provider
       if (espProvider.isConnected) {
         riskProvider.updateIOPLevel(espProvider.currentIOP);
       }
@@ -41,10 +47,7 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
   @override
   Widget build(BuildContext context) {
     final riskProvider = Provider.of<RiskProvider>(context);
-    final espProvider = Provider.of<ESPProvider>(context);
     final cameraProvider = Provider.of<CameraProvider>(context);
-
-    // Sync IOP data with risk provider - moved to initState to avoid build errors
 
     return Scaffold(
       appBar: AppBar(
@@ -78,7 +81,7 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
 
             const SizedBox(height: 24),
 
-            // Risk Gauge
+            // Digital Risk Reading
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -86,10 +89,12 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
                   children: [
                     Text(
                       'Glaucoma Risk Assessment',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 24),
-                    RiskGaugeWidget(riskLevel: riskProvider.glaucomaRisk),
+                    _buildDigitalRiskDisplay(riskProvider.glaucomaRisk),
                     const SizedBox(height: 16),
                     _buildRiskLevel(riskProvider.glaucomaRisk),
                   ],
@@ -149,13 +154,6 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
               Icons.check_circle,
               AppTheme.primaryPurple,
             ),
-
-            const SizedBox(height: 24),
-
-            // Additional Risk Factors
-            Text('Risk Factors', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            _buildRiskFactorSection(riskProvider),
 
             const SizedBox(height: 24),
 
@@ -252,7 +250,7 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
       child: Stack(
         children: [
           Container(
-            height: 300,
+            height: 400,
             child: CameraPreview(cameraProvider.controller!),
           ),
           // Overlay with instructions
@@ -397,12 +395,12 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
   Widget _buildCameraPlaceholder() {
     return Card(
       child: Container(
-        height: 300,
+        height: 400,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppTheme.primaryBlue.withOpacity(0.1),
-              AppTheme.primaryGreen.withOpacity(0.1),
+              AppTheme.primaryRed.withOpacity(0.1),
+              AppTheme.accentGold.withOpacity(0.1),
             ],
           ),
         ),
@@ -413,19 +411,71 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
               Icon(
                 Icons.camera_alt_outlined,
                 size: 64,
-                color: AppTheme.primaryBlue,
+                color: AppTheme.primaryRed,
               ),
               SizedBox(height: 16),
               Text(
-                'Tap camera icon to analyze eye',
+                'Camera auto-started - Focus on your eye',
                 style: TextStyle(
-                  color: AppTheme.primaryBlue,
+                  color: AppTheme.primaryRed,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDigitalRiskDisplay(double risk) {
+    Color color;
+    if (risk < 30) {
+      color = AppTheme.successGreen;
+    } else if (risk < 60) {
+      color = AppTheme.warningOrange;
+    } else {
+      color = AppTheme.dangerRed;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withOpacity(0.2),
+            color.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withOpacity(0.5), width: 2),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(
+            risk.toStringAsFixed(1),
+            style: TextStyle(
+              fontSize: 72,
+              fontWeight: FontWeight.bold,
+              color: color,
+              letterSpacing: -2,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '%',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
+              color: color.withOpacity(0.7),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -510,53 +560,6 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
     );
   }
 
-  Widget _buildRiskFactorSection(RiskProvider riskProvider) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.calendar_today),
-              title: const Text('Age'),
-              trailing: Text('${riskProvider.age} years'),
-              subtitle: const Text('Higher age increases risk'),
-            ),
-            const Divider(),
-            SwitchListTile(
-              secondary: const Icon(Icons.family_restroom),
-              title: const Text('Family History'),
-              subtitle: const Text('History of glaucoma in family'),
-              value: riskProvider.hasFamilyHistory,
-              onChanged: (value) {
-                riskProvider.updateFamilyHistory(value);
-              },
-            ),
-            const Divider(),
-            SwitchListTile(
-              secondary: const Icon(Icons.medical_services),
-              title: const Text('Diabetes'),
-              subtitle: const Text('Diabetic condition'),
-              value: riskProvider.isDiabetic,
-              onChanged: (value) {
-                riskProvider.updateDiabetesStatus(value);
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.monitor_heart),
-              title: const Text('Blood Pressure'),
-              subtitle: const Text('Higher BP may increase risk'),
-              trailing: Text(
-                '${riskProvider.bloodPressure.toStringAsFixed(0)} mmHg',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Color _getRecommendationColor(double risk) {
     if (risk < 30) return AppTheme.successGreen;
     if (risk < 60) return AppTheme.warningOrange;
@@ -574,5 +577,3 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
       default:
         return Colors.grey;
     }
-  }
-}

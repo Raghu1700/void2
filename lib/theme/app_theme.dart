@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Primary Yellow & Gold Colors
-  static const Color primaryYellow = Color(0xFFFFC107); // Amber
-  static const Color primaryYellowLight = Color(0xFFFFD54F); // Light Amber
-  static const Color primaryYellowDark = Color(0xFFFFA000); // Dark Amber
-  static const Color accentGold = Color(0xFFFFB300); // Gold
-  static const Color lightGold = Color(0xFFFFE082); // Light gold
-  
+  // Primary Red & Gold Colors
+  static const Color primaryRed = Color(0xFFDC143C); // Crimson Red
+  static const Color primaryRedLight = Color(0xFFFF6B6B); // Light Red
+  static const Color primaryRedDark = Color(0xFFB22222); // Dark Red
+  static const Color accentGold = Color(0xFFFFD700); // Gold
+  static const Color lightGold = Color(0xFFFFE97F); // Light gold
+
   // White & Neutral Colors
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color offWhite = Color(0xFFFFFBF5); // Warm off-white
@@ -16,39 +16,46 @@ class AppTheme {
   static const Color warmGray = Color(0xFF757575);
   static const Color darkGray = Color(0xFF424242);
   static const Color textDark = Color(0xFF2C2C2C);
-  
+
   // Status Colors
   static const Color successGreen = Color(0xFF66BB6A);
   static const Color warningOrange = Color(0xFFFF9800);
   static const Color dangerRed = Color(0xFFEF5350);
   static const Color infoBlue = Color(0xFF42A5F5);
-  
+
   // Legacy colors for compatibility
+  static const Color primaryYellow = accentGold; // Redirected to gold
   static const Color primaryBlue = infoBlue;
   static const Color primaryGreen = successGreen;
   static const Color primaryPurple = Color(0xFFAB47BC);
-  
+
   // Background Colors
   static const Color backgroundLight = Color(0xFFFFFBF5);
   static const Color backgroundDark = Color(0xFF1A1A2E);
-  
+
   // Card Colors
   static const Color cardLight = pureWhite;
   static const Color cardDark = Color(0xFF16213E);
-  
+
   // Gradient definitions
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [primaryYellowLight, primaryYellow],
+    colors: [primaryRedLight, primaryRed],
   );
-  
+
   static const LinearGradient accentGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [lightGold, accentGold],
   );
-  
+
+  static const LinearGradient redGoldGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryRed, accentGold],
+  );
+
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
@@ -59,16 +66,16 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      primaryColor: primaryYellow,
+      primaryColor: primaryRed,
       scaffoldBackgroundColor: backgroundLight,
       colorScheme: const ColorScheme.light(
-        primary: primaryYellow,
+        primary: primaryRed,
         secondary: accentGold,
-        tertiary: primaryYellowLight,
+        tertiary: primaryRedLight,
         error: dangerRed,
         surface: cardLight,
         background: backgroundLight,
-        onPrimary: textDark,
+        onPrimary: pureWhite,
         onSecondary: textDark,
         onSurface: textDark,
         onBackground: textDark,
@@ -125,7 +132,7 @@ class AppTheme {
       ),
       cardTheme: CardTheme(
         elevation: 6,
-        shadowColor: primaryYellow.withOpacity(0.2),
+        shadowColor: primaryRed.withOpacity(0.2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
         ),
@@ -150,9 +157,9 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          backgroundColor: primaryYellow,
-          foregroundColor: textDark,
-          shadowColor: primaryYellow.withOpacity(0.5),
+          backgroundColor: primaryRed,
+          foregroundColor: pureWhite,
+          shadowColor: primaryRed.withOpacity(0.5),
           textStyle: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -161,8 +168,8 @@ class AppTheme {
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: primaryYellow,
-        foregroundColor: textDark,
+        backgroundColor: primaryRed,
+        foregroundColor: pureWhite,
         elevation: 8,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
@@ -171,23 +178,24 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: pureWhite,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: primaryYellow.withOpacity(0.3)),
+          borderSide: BorderSide(color: primaryRed.withOpacity(0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: primaryYellow.withOpacity(0.3)),
+          borderSide: BorderSide(color: primaryRed.withOpacity(0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(color: primaryYellow, width: 2),
+          borderSide: const BorderSide(color: primaryRed, width: 2),
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: pureWhite,
-        selectedItemColor: primaryYellow,
+        selectedItemColor: primaryRed,
         unselectedItemColor: warmGray,
         elevation: 16,
         type: BottomNavigationBarType.fixed,
@@ -200,16 +208,16 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      primaryColor: primaryYellow,
+      primaryColor: primaryRed,
       scaffoldBackgroundColor: backgroundDark,
       colorScheme: const ColorScheme.dark(
-        primary: primaryYellow,
+        primary: primaryRed,
         secondary: accentGold,
-        tertiary: primaryYellowLight,
+        tertiary: primaryRedLight,
         error: dangerRed,
         surface: cardDark,
         background: backgroundDark,
-        onPrimary: textDark,
+        onPrimary: pureWhite,
         onSecondary: textDark,
       ),
       textTheme: GoogleFonts.poppinsTextTheme(
@@ -260,7 +268,7 @@ class AppTheme {
       ),
       cardTheme: CardTheme(
         elevation: 4,
-        shadowColor: primaryYellow.withOpacity(0.3),
+        shadowColor: primaryRed.withOpacity(0.3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
         ),
@@ -284,8 +292,8 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          backgroundColor: primaryYellow,
-          foregroundColor: textDark,
+          backgroundColor: primaryRed,
+          foregroundColor: pureWhite,
           textStyle: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -305,7 +313,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(color: primaryYellow, width: 2),
+          borderSide: const BorderSide(color: primaryRed, width: 2),
         ),
       ),
     );
