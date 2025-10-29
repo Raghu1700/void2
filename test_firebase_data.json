@@ -1,0 +1,16 @@
+{
+  "sensor_data": {
+    "distance": 5.5,
+    "area": 0.00007854,
+    "arf": 0.523,
+    "deformation": 0.0523,
+    "current_iop": 20.45,
+    "avg_iop": 19.87,
+    "resistance": 10.0,
+    "connected": true,
+    "timestamp": 1698765432000,
+    "device_id": "test_device"
+  }
+}
+
+

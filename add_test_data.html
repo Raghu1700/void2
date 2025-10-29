@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Test Data to Firebase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #FFC107;
+        }
+        button {
+            background: #FFC107;
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #FFD54F;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Add Test Data to Firebase</h1>
+        
+        <div class="info">
+            <strong>📡 Database URL:</strong><br>
+            https://ocupulse-default-rtdb.asia-southeast1.firebasedatabase.app
+        </div>
+
+        <h3>Sensor Values</h3>
+        
+        <label>Distance (cm):</label>
+        <input type="number" id="distance" value="5.5" step="0.1">
+        
+        <label>Area (m²):</label>
+        <input type="number" id="area" value="0.00007854" step="0.00000001">
+        
+        <label>ARF (N):</label>
+        <input type="number" id="arf" value="0.523" step="0.001">
+        
+        <label>Deformation (m):</label>
+        <input type="number" id="deformation" value="0.0523" step="0.0001">
+        
+        <label>Current IOP (mmHg):</label>
+        <input type="number" id="current_iop" value="20.45" step="0.01">
+        
+        <label>Average IOP (mmHg):</label>
+        <input type="number" id="avg_iop" value="19.87" step="0.01">
+        
+        <label>Resistance:</label>
+        <input type="number" id="resistance" value="10.0" step="0.1">
+        
+        <label>Device ID:</label>
+        <input type="text" id="device_id" value="test_device_web">
+
+        <br><br>
+        <button onclick="writeData()">📤 Write to Firebase</button>
+        <button onclick="randomizeData()">🎲 Randomize Values</button>
+        
+        <div id="status" class="status"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDlM9bJUF4Yqk9hb_Cvcyp7OAZk8kV24LM",
+            authDomain: "ocupulse.firebaseapp.com",
+            databaseURL: "https://ocupulse-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ocupulse",
+            storageBucket: "ocupulse.firebasestorage.app",
+            messagingSenderId: "432837023148",
+            appId: "1:432837023148:web:56c139cebff1155e751609",
+            measurementId: "G-PN283E6F8X"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.writeData = async function() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status';
+            statusDiv.textContent = '⏳ Writing to Firebase...';
+
+            const data = {
+                distance: parseFloat(document.getElementById('distance').value),
+                area: parseFloat(document.getElementById('area').value),
+                arf: parseFloat(document.getElementById('arf').value),
+                deformation: parseFloat(document.getElementById('deformation').value),
+                current_iop: parseFloat(document.getElementById('current_iop').value),
+                avg_iop: parseFloat(document.getElementById('avg_iop').value),
+                resistance: parseFloat(document.getElementById('resistance').value),
+                connected: true,
+                timestamp: Date.now(),
+                device_id: document.getElementById('device_id').value
+            };
+
+            try {
+                await set(ref(database, 'sensor_data'), data);
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = `
+                    ✅ <strong>Data written successfully!</strong><br>
+                    Check your Flutter app now - it should show these values!<br>
+                    IOP: ${data.current_iop} mmHg | Distance: ${data.distance} cm
+                `;
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ <strong>Error:</strong> ${error.message}`;
+            }
+        };
+
+        window.randomizeData = function() {
+            document.getElementById('distance').value = (Math.random() * 4 + 3).toFixed(2);
+            document.getElementById('arf').value = (Math.random() * 0.2 + 0.4).toFixed(3);
+            document.getElementById('deformation').value = (Math.random() * 0.02 + 0.04).toFixed(4);
+            const iop = (Math.random() * 10 + 15).toFixed(2);
+            document.getElementById('current_iop').value = iop;
+            document.getElementById('avg_iop').value = (parseFloat(iop) + Math.random() * 2 - 1).toFixed(2);
+            document.getElementById('resistance').value = (Math.random() * 5 + 8).toFixed(2);
+        };
+    </script>
+</body>
+</html>
+
+
