@@ -216,12 +216,12 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
     if (cameraProvider.controller == null || !cameraProvider.isInitialized) {
       return Card(
         child: Container(
-          height: 300,
+          height: 400,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppTheme.primaryBlue.withOpacity(0.1),
-                AppTheme.primaryGreen.withOpacity(0.1),
+                AppTheme.primaryRed.withOpacity(0.1),
+                AppTheme.accentGold.withOpacity(0.1),
               ],
             ),
           ),
@@ -234,7 +234,7 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
                 Text(
                   'Initializing Camera...',
                   style: TextStyle(
-                    color: AppTheme.primaryBlue,
+                    color: AppTheme.primaryRed,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -577,3 +577,5 @@ class _RiskCalculationPageState extends State<RiskCalculationPage> {
       default:
         return Colors.grey;
     }
+  }
+}
